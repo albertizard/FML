@@ -3,7 +3,7 @@
 SHELL := /bin/bash
 
 #===================================================
-# Set C++17 compliant compiler. If USE_MPI we use MPICC 
+# Set C++17 compliant compiler. If USE_MPI we use MPICC
 #===================================================
 
 CC      = g++ -std=c++1z -O3 -Wall -Wextra -march=native
@@ -13,14 +13,14 @@ MPICC   = mpicxx -std=c++1z -O3 -Wall -Wextra -march=native
 # Options
 #===================================================
 
-# Use MPI 
+# Use MPI
 USE_MPI          = true
 # Use OpenMP threads
-USE_OMP          = true
+USE_OMP          = false
 # Use the FFTW library (required)
 USE_FFTW         = true
 # Use threads in FFTW
-USE_FFTW_THREADS = true
+USE_FFTW_THREADS = false
 # Log allocations in the library
 USE_MEMORYLOG    = true
 # Check for bad memory accesses
@@ -30,39 +30,40 @@ USE_GSL          = true
 # Use LUA (required to use parameterfile)
 # One can edit ReadParameters.h to do without it
 USE_LUA          = true
+SINGLE_PRECISION_FFTW = true
 
 #===================================================
 # Include and library paths
 #===================================================
 
 # Main library include (path to folder containin FML/)
-FML_INCLUDE    = $(HOME)/local/FML
+FML_INCLUDE    = $(HOME)/codes/FML
 
 # FFTW
-FFTW_INCLUDE   = $(HOME)/local/include
-FFTW_LIB       = $(HOME)/local/lib
-FFTW_LINK      = -lfftw3
-FFTW_MPI_LINK  = -lfftw3_mpi
-FFTW_OMP_LINK  = -lfftw3_threads
+FFTW_INCLUDE   = $(HOME)/local/fftw3/3.3.8-clang-mpich-single/include
+FFTW_LIB       = $(HOME)/local/fftw3/3.3.8-clang-mpich-single/lib
+FFTW_LINK      = -lfftw3f
+FFTW_MPI_LINK  = -lfftw3f_mpi
+# FFTW_OMP_LINK  = -lfftw3_threads
 
 # GSL
-GSL_INCLUDE    = $(HOME)/local/include
-GSL_LIB        = $(HOME)/local/lib
+GSL_INCLUDE    = $(HOME)/local/gsl/2.6-clang/include
+GSL_LIB        = $(HOME)/local/gsl/2.6-clang/lib
 GSL_LINK       = -lgsl -lgslcblas
 
 # LUA
-LUA_INCLUDE    = $(HOME)/local/include
-LUA_LIB        = $(HOME)/local/lib
+LUA_INCLUDE    = $(HOME)/local/lua/5.3.5-clang/include
+LUA_LIB        = $(HOME)/local/lua/5.3.5-clang/lib
 LUA_LINK       = -llua -ldl
 
 #===================================================
 # Compile up all library defines from options above
 #===================================================
 
-INC     = -I$(FML_INCLUDE) 
+INC     = -I$(FML_INCLUDE)
 LIB     =
-LINK    = 
-OPTIONS = 
+LINK    =
+OPTIONS =
 
 ifeq ($(USE_MPI),true)
 CC       = $(MPICC)
@@ -90,6 +91,9 @@ ifeq ($(USE_FFTW_THREADS),true)
 OPTIONS += -DUSE_FFTW_THREADS
 LINK    += $(FFTW_OMP_LINK)
 endif
+endif
+ifeq ($(SINGLE_PRECISION_FFTW),true)
+OPTIONS += -DSINGLE_PRECISION_FFTW
 endif
 LINK    += $(FFTW_LINK)
 endif
@@ -137,6 +141,5 @@ GadgetUtils.o: $(FML_INCLUDE)/FML/GadgetUtils/GadgetUtils.cpp $(FML_INCLUDE)/FML
 ParameterMap.o: $(FML_INCLUDE)/FML/ParameterMap/ParameterMap.cpp $(FML_INCLUDE)/FML/ParameterMap/ParameterMap.h
 FileUtils.o: $(FML_INCLUDE)/FML/FileUtils/FileUtils.cpp $(FML_INCLUDE)/FML/FileUtils/FileUtils.h
 
-%.o: %.cpp 
-	${CC} -c -o $@ $< $(OPTIONS) $(INC) 
-
+%.o: %.cpp
+	${CC} -c -o $@ $< $(OPTIONS) $(INC)
